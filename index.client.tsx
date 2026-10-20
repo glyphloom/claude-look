@@ -8,7 +8,7 @@ import {
   describeTodos,
   describeToolCall,
 } from "./client/describe";
-import { recordPrompt, recordReply, recordStep } from "./client/runs";
+import { inCurrentTurn, recordPrompt, recordReply, recordStep } from "./client/runs";
 import { toolImagePaths } from "./client/tool-image";
 import { ToolItem, toolItemSchema } from "./client/tool-row";
 import { installPagePatch } from "./client/web";
@@ -43,14 +43,14 @@ export default function contribute(client: PluginClientContext) {
       query: { itemType: "reasoning" },
       transform({ item, phase }) {
         if (!item.text.trim()) return { items: [] };
-        return stepItem(describeThought(item.text, phase));
+        return stepItem(inCurrentTurn(describeThought(item.text, phase)));
       },
     }),
     client.addTimelineTransformer({
       id: "todo",
       query: { itemType: "todo" },
       transform({ item }) {
-        return stepItem(describeTodos(item.items));
+        return stepItem(inCurrentTurn(describeTodos(item.items)));
       },
     }),
     // A tool's image arrives as its own message and joins the run; any other
@@ -60,7 +60,7 @@ export default function contribute(client: PluginClientContext) {
       query: { itemType: "assistant_message" },
       transform({ item }) {
         const paths = toolImagePaths(item.text);
-        if (paths) return stepItem(describeImages(paths));
+        if (paths) return stepItem(inCurrentTurn(describeImages(paths)));
         // Paseo draws nothing for an empty reply, so it splits no run.
         if (item.text.trim()) recordReply();
         return undefined;

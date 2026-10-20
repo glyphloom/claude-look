@@ -25,6 +25,7 @@ const runIdByStep = new Map<string, number>();
 const seenPrompts = new Set<string>();
 const listeners = new Set<() => void>();
 let openRunId: number | null = null;
+let currentPrompt = "";
 let nextRunId = 1;
 let notifyQueued = false;
 /** Whether a feeding pass is under way: Paseo feeds a pass in one go, so it ends at the next tick. */
@@ -69,7 +70,17 @@ function leads(runId: number, stepId: string): boolean {
 export function recordPrompt(key: string): void {
   notePass(seenPrompts.has(key));
   seenPrompts.add(key);
+  currentPrompt = key;
   openRunId = null;
+}
+
+/**
+ * A thought, todo list or tool image has no id, so it is known by its content,
+ * which can come again in a later turn or another session (Paseo names a tool
+ * image after its bytes). Keying it under the current prompt keeps those apart.
+ */
+export function inCurrentTurn(entry: ToolEntry): ToolEntry {
+  return { ...entry, callId: `${currentPrompt}:${entry.callId}` };
 }
 
 /** A reply ends the run of steps before it. */

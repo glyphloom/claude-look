@@ -101,8 +101,14 @@ const PAGE_STYLE = `
  * when it scrolls in and everything below jumps if the row grows afterwards.
  */
 
-/* Attached images as Claude Desktop's tiles: the whole image at a fixed height, taller alone. */
+/*
+ * Attached images as Claude Desktop's tiles: the whole image at a fixed height, taller alone.
+ * The image's width caps are plain lengths: the tile takes its width from the image, and a
+ * percentage cap is ignored when sizing it, so a wide image would stretch the tile past the
+ * message.
+ */
 ${ATTACHMENT} {
+  max-width: 100%; overflow: hidden;
   border-radius: 8px !important;
   border: 0.5px solid color-mix(in srgb, var(--colors-foreground) 20%, transparent) !important;
 }
@@ -113,7 +119,7 @@ ${ATTACHMENT} img {
   position: static !important; opacity: 1 !important; display: block !important;
   width: auto !important; height: 120px !important; max-width: 240px; object-fit: contain;
 }
-${ATTACHMENT}:only-child img { height: 240px !important; max-width: min(480px, 100%); }
+${ATTACHMENT}:only-child img { height: 240px !important; max-width: 480px; }
 
 /* Images in replies: Paseo's box at the image's shape, held to 360px tall, with a thin frame. */
 ${MARKDOWN_IMAGE} > button { border-radius: 5px; border: ${FRAME}; }
