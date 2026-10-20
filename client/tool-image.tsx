@@ -32,8 +32,9 @@ export function toolImagePaths(text: string): string[] | null {
 export function ToolImages({ paths, theme }: { paths: readonly string[]; theme: PluginTheme }) {
   return (
     <View style={{ gap: 4, paddingVertical: 4 }}>
-      {paths.map((path) => (
-        <ToolImage key={path} path={path} theme={theme} />
+      {/* The same image can appear twice in one message, so its place keys it. */}
+      {paths.map((path, index) => (
+        <ToolImage key={index} path={path} theme={theme} />
       ))}
     </View>
   );

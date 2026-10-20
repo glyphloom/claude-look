@@ -142,7 +142,7 @@ export interface DiffLine {
 
 /** One step as the plugin draws it. Plain JSON, so it can travel as timeline data. */
 export interface ToolEntry {
-  /** The tool call id, or for other steps a key made from their content. */
+  /** The tool call id, or for other steps a key made from their content (see `inCurrentTurn`). */
   callId: string;
   status: ToolCall["status"];
   category: Category;

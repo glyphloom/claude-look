@@ -7,8 +7,10 @@
 // a prompt or a reply closes it. Items carry no session, so two sessions
 // streaming at once can split or merge each other's runs; a step already filed
 // stays in its run. When Paseo loads a session's history again it feeds it in
-// order from a prompt already seen, and that pass files every step afresh. A thought has no id and grows while it streams, so it
-// is known by its opening, and a growing one replaces the thought it extends.
+// order from a prompt already seen, and that pass files every step afresh.
+// A todo list or tool image has no id, so it is known by its content under the
+// turn's prompt. A thought has no id either and grows while it streams, so it is
+// known by its opening alone, and a growing one replaces the thought it extends.
 import { useSyncExternalStore } from "react";
 import type { ToolEntry } from "./describe";
 
@@ -22,10 +24,11 @@ const MAX_RUNS = 1000;
 
 const runs = new Map<number, Run>();
 const runIdByStep = new Map<string, number>();
-const seenPrompts = new Set<string>();
+/** Each prompt seen, numbered in the order it first came, so a step's key holds a number rather than a prompt's text. */
+const promptNumbers = new Map<string, number>();
 const listeners = new Set<() => void>();
 let openRunId: number | null = null;
-let currentPrompt = "";
+let currentPromptNumber = 0;
 let nextRunId = 1;
 let notifyQueued = false;
 /** Whether a feeding pass is under way: Paseo feeds a pass in one go, so it ends at the next tick. */
@@ -68,19 +71,21 @@ function leads(runId: number, stepId: string): boolean {
 
 /** A prompt ends the run before it; a prompt seen before starts a turn fed again in order. */
 export function recordPrompt(key: string): void {
-  notePass(seenPrompts.has(key));
-  seenPrompts.add(key);
-  currentPrompt = key;
+  const knownNumber = promptNumbers.get(key);
+  notePass(knownNumber !== undefined);
+  currentPromptNumber = knownNumber ?? promptNumbers.size + 1;
+  promptNumbers.set(key, currentPromptNumber);
   openRunId = null;
 }
 
 /**
- * A thought, todo list or tool image has no id, so it is known by its content,
- * which can come again in a later turn or another session (Paseo names a tool
- * image after its bytes). Keying it under the current prompt keeps those apart.
+ * A todo list or tool image can come again in a later turn or another session
+ * (Paseo names a tool image after its bytes). Keying it under the current prompt
+ * keeps those apart. Thoughts are left out: a prompt fed while one streams (older
+ * history loading) would change the key between two of its growths.
  */
 export function inCurrentTurn(entry: ToolEntry): ToolEntry {
-  return { ...entry, callId: `${currentPrompt}:${entry.callId}` };
+  return { ...entry, callId: `${currentPromptNumber}:${entry.callId}` };
 }
 
 /** A reply ends the run of steps before it. */

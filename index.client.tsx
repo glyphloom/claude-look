@@ -43,7 +43,7 @@ export default function contribute(client: PluginClientContext) {
       query: { itemType: "reasoning" },
       transform({ item, phase }) {
         if (!item.text.trim()) return { items: [] };
-        return stepItem(inCurrentTurn(describeThought(item.text, phase)));
+        return stepItem(describeThought(item.text, phase));
       },
     }),
     client.addTimelineTransformer({
