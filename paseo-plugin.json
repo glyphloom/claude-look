@@ -2,7 +2,9 @@
   "id": "claude-look",
   "name": "Claude Look",
   "description": "Tool calls, images, video and audio in a session drawn the way Claude Desktop draws them",
-  "media": [],
+  "media": [
+    "assets/screenshot.png"
+  ],
   "requirements": {
     "paseo": ">=0.11.2"
   }
